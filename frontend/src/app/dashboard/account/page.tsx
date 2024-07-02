@@ -1,29 +1,207 @@
+"use client";
+
 import * as React from 'react';
-import type { Metadata } from 'next';
+import { useState } from 'react';
+import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Unstable_Grid2';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardMedia from '@mui/material/CardMedia';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
+import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
 
-import { config } from '@/config';
-import { AccountDetailsForm } from '@/components/dashboard/account/account-details-form';
-import { AccountInfo } from '@/components/dashboard/account/account-info';
+const initialAlbums = [];
 
-export const metadata = { title: `Account | Dashboard | ${config.site.name}` } satisfies Metadata;
+export default function AlbumUploadPage(): React.JSX.Element {
+  const [open, setOpen] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [albums, setAlbums] = useState(initialAlbums);
+  const [overlayOpen, setOverlayOpen] = useState(false);
+  const [overlayImage, setOverlayImage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-export default function Page(): React.JSX.Element {
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedFiles([]);
+  };
+
+  const handleFileChange = (event) => {
+    setSelectedFiles([...event.target.files]);
+  };
+
+  const handleAdd = () => {
+    setLoading(true);
+    setTimeout(() => {
+      const newAlbums = selectedFiles.map((file, index) => ({
+        id: albums.length + index + 1,
+        src: URL.createObjectURL(file),
+      }));
+      setAlbums([...albums, ...newAlbums]);
+      setLoading(false);
+      handleClose();
+    }, 5000);
+  };
+
+  const handleDelete = (id) => {
+    setAlbums(albums.filter((album) => album.id !== id));
+  };
+
+  const handleImageClick = (src) => {
+    setOverlayImage(src);
+    setOverlayOpen(true);
+  };
+
+  const handleOverlayClick = () => {
+    setOverlayOpen(false);
+    setOverlayImage(null);
+  };
+
   return (
     <Stack spacing={3}>
-      <div>
-        <Typography variant="h4">Account</Typography>
-      </div>
-      <Grid container spacing={3}>
-        <Grid lg={4} md={6} xs={12}>
-          <AccountInfo />
+      <Stack direction="row" spacing={3}>
+        <Stack spacing={1} sx={{ flex: '1 1 auto' }}>
+          <Typography variant="h4">Album Upload</Typography>
+        </Stack>
+        <div>
+          <Button 
+            variant="outlined" 
+            disabled 
+            style={{ marginLeft: '10px', backgroundColor: 'white' }} 
+            startIcon={<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Google_Photos_icon_%282020%29.svg/2048px-Google_Photos_icon_%282020%29.svg.png" alt="Google Photos" style={{ width: '20px', height: '20px' }} />}
+          >
+            Link Google Photos (coming soon)
+          </Button>
+          <Button 
+            variant="outlined" 
+            disabled 
+            style={{ marginLeft: '10px', backgroundColor: 'white' }} 
+            startIcon={<img src="https://cdn0.iconfinder.com/data/icons/apple-apps/100/Apple_Photos-512.png" alt="Apple Photos" style={{ width: '20px', height: '20px' }} />}
+          >
+            Link Apple Photos (coming soon)
+          </Button>
+          <Button 
+            startIcon={<PlusIcon fontSize="var(--icon-fontSize-md)" />} 
+            variant="contained" 
+            onClick={handleClickOpen}
+            style={{ marginLeft: '10px' }}
+          >
+            Add Photos
+          </Button>
+        </div>
+      </Stack>
+
+      {albums.length === 0 ? (
+        <Typography variant="h6" align="center" style={{marginTop: '300px'}}>No Photos Currently Added</Typography>
+      ) : (
+        <Grid container spacing={3}>
+          {albums.map((album) => (
+            <Grid item xs={12} sm={6} md={4} key={album.id}>
+              <Card>
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={album.src}
+                  alt={`Album ${album.id}`}
+                  onClick={() => handleImageClick(album.src)}
+                  style={{ cursor: 'pointer' }}
+                />
+                <CardActions style={{ justifyContent: 'center' }}>
+                  <Button
+                    variant="outlined"
+                    color="warning"
+                    startIcon={<DeleteIcon />}
+                    onClick={() => handleDelete(album.id)}
+                  >
+                    Delete Photo
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
-        <Grid lg={8} md={6} xs={12}>
-          <AccountDetailsForm />
-        </Grid>
-      </Grid>
+      )}
+
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+        <DialogTitle>Add New Photos</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Upload multiple photos to your album.
+          </DialogContentText>
+          <Box display="flex" justifyContent="center" marginBottom={2}>
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="raised-button-file"
+              type="file"
+              multiple
+              onChange={handleFileChange}
+            />
+            <label htmlFor="raised-button-file">
+              <Button variant="contained" component="span" startIcon={<UploadIcon />} style={{ marginTop: '10px' }}>
+                Upload
+              </Button>
+            </label>
+          </Box>
+          <Grid container spacing={1}>
+            {selectedFiles.map((file, index) => (
+              <Grid item xs={4} key={index}>
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt={`Selected file ${index + 1}`}
+                  style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleAdd} variant="contained">
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Add Photos'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {overlayOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+          onClick={handleOverlayClick}
+        >
+          <img 
+            src={overlayImage} 
+            alt="Overlay"
+            style={{
+              maxWidth: '80%',
+              maxHeight: '80%',
+              objectFit: 'contain',
+            }}
+          />
+        </div>
+      )}
     </Stack>
   );
 }

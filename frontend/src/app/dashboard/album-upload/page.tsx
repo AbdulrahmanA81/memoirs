@@ -10,6 +10,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import DeleteIcon from '@mui/icons-material/Delete';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
@@ -18,6 +19,7 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
 import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
+import { textAlign } from '@mui/system';
 
 const initialAlbums = [];
 
@@ -44,15 +46,16 @@ export default function AlbumUploadPage(): React.JSX.Element {
 
   const handleAdd = () => {
     setLoading(true);
-    setTimeout(() => {
-      const newAlbums = selectedFiles.map((file, index) => ({
-        id: albums.length + index + 1,
-        src: URL.createObjectURL(file),
-      }));
-      setAlbums([...albums, ...newAlbums]);
-      setLoading(false);
-      handleClose();
-    }, 5000);
+    // setTimeout(() => {
+    // add to frontend
+    const newAlbums = selectedFiles.map((file, index) => ({
+      id: albums.length + index + 1,
+      src: URL.createObjectURL(file),
+    }));
+    setAlbums([...albums, ...newAlbums]);
+    uploadImages();  // send to backend
+    handleClose();
+    // }, 5000);
   };
 
   const handleDelete = (id) => {
@@ -68,6 +71,38 @@ export default function AlbumUploadPage(): React.JSX.Element {
     setOverlayOpen(false);
     setOverlayImage(null);
   };
+
+  const getAlbumImages = async () => {
+    const response = await fetch('http://localhost:8000/get_album_images');
+    const data = await response.json();
+    const albums = data.map((album, index) => ({
+      id: index + 1,
+      label: album.label,
+      src: album.s3_url,
+    }));
+    setAlbums(albums);
+  }
+
+  const uploadImages = async () => {
+    // NOTE: does not work rn
+    // send to backend
+    const formData = new FormData();
+    selectedFiles.forEach(file => {  // individually append each file
+      formData.append('files', file);
+    });
+    const response = await fetch('http://localhost:8000/upload_user_image', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await response.json();
+    setLoading(false);
+    console.log(data);
+    return data;
+  }
+
+  React.useEffect(() => {
+    getAlbumImages();
+  }, []);
 
   return (
     <Stack spacing={3}>
@@ -118,6 +153,7 @@ export default function AlbumUploadPage(): React.JSX.Element {
                   onClick={() => handleImageClick(album.src)}
                   style={{ cursor: 'pointer' }}
                 />
+                <Typography variant="h6" style={{ textAlign: 'center' }}>{album.label}</Typography>
                 <CardActions style={{ justifyContent: 'center' }}>
                   <Button
                     variant="outlined"

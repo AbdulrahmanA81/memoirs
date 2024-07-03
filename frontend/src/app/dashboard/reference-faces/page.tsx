@@ -26,7 +26,7 @@ const initialReferences = [];
 export default function Page(): React.JSX.Element {
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [fileName, setFileName] = useState('');
+  const [fileName, setFileName] = useState('');  // the label
   const [references, setReferences] = useState(initialReferences);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [overlayImage, setOverlayImage] = useState(null);
@@ -46,12 +46,14 @@ export default function Page(): React.JSX.Element {
   };
 
   const handleAdd = () => {
+    // add to frontend
     const newReference = {
       id: references.length + 1,
       name: fileName,
       src: URL.createObjectURL(selectedFile),
     };
     setReferences([...references, newReference]);
+    uploadReference();  // send to backend
     handleClose();
   };
 
@@ -68,6 +70,39 @@ export default function Page(): React.JSX.Element {
     setOverlayOpen(false);
     setOverlayImage(null);
   };
+
+  const getReferenceImages = async () => {
+    const response = await fetch('http://localhost:8000/get_reference_images', {
+      method: 'GET',
+    });
+    const data = await response.json();
+    const updatedData = data.map((reference, index) => {
+      return {
+        id: index + 1,
+        name: reference.label,
+        src: reference.s3_url,
+      };
+    });
+    setReferences(updatedData);
+  };
+
+  const uploadReference = async () => {
+    // Upload the file to the backend
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('label', fileName);
+    const response = await fetch('http://localhost:8000/upload_reference', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await response.json();
+    console.log(data);
+    return data;
+  }
+
+  React.useEffect(() => {
+    getReferenceImages();  // Fetch reference images when the page loads
+  }, []);
 
   return (
     <Stack spacing={3}>

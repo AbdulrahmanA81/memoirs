@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from database import get_db
-from utils.s3_utils import upload_file_to_s3, upload_files_to_s3_concurrently
+from utils.s3_utils import upload_file_to_s3
 from utils.rekognition_utils import compare_faces
 from config import Config
 

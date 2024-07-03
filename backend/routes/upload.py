@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from database import get_db
 from utils.s3_utils import upload_file_to_s3, delete_file_from_s3
-from utils.rekognition_utils import compare_faces
+from utils.rekognition_utils import compare_faces, detect_labels
 from config import Config
 from flask_cors import cross_origin
 import traceback
@@ -11,24 +11,37 @@ bp = Blueprint('upload', __name__)
 @bp.route('/upload_user_image', methods=['POST'])
 @cross_origin()
 def upload_user_image():
-    try: 
+    try:
         files = request.files.getlist('files')
-        print(files)
         for file in files:
             s3_url = upload_file_to_s3(file, file.filename, Config.S3_BUCKET)
-            print(s3_url)
             if s3_url:
                 db = get_db()
                 cursor = db.cursor()
                 cursor.execute('INSERT INTO user_image (s3_url) VALUES (?)', (s3_url,))
                 db.commit()
+                label_objects(s3_url)
         label_images()
         return jsonify({'message': 'User image(s) uploaded successfully'}), 201
     except Exception as e:
         print(e)
-        traceback.format_exc()
-        return jsonify({'message': 'Failed to upload image'}), 400
- 
+        traceback.print_exc()
+        return jsonify({'message': 'Failed to upload image(s)'}), 400
+
+def label_objects(s3_url):
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Detect objects in the image using Amazon Rekognition
+    labels = detect_labels(s3_url)
+    
+    # Format the labels as a comma-separated string
+    object_labels = ','.join(label['Name'] for label in labels)
+    
+    # Update the user_image table with the object labels
+    cursor.execute('UPDATE user_image SET object_label = ? WHERE s3_url = ?', (object_labels, s3_url))
+    db.commit()
+
 @bp.route('/label_images', methods=['POST'])
 @cross_origin()
 def label_images():
@@ -45,15 +58,15 @@ def label_images():
         matching_labels = []
         
         for reference_image in reference_images:
-            reference_image_id = reference_image['id']
             reference_image_label = reference_image['label']
             reference_image_url = reference_image['s3_url']
             
             matches = compare_faces(reference_image_url, user_image_url)
             if matches:
                 matching_labels.append(reference_image_label)
-        cursor.execute('UPDATE user_image SET label = ?, reference_id = ? WHERE id = ?', 
-                        (",".join(matching_labels), reference_image_id, user_image_id))
+        
+        # Update the user_image table with the labels
+        cursor.execute('UPDATE user_image SET label = ? WHERE id = ?', (",".join(matching_labels), user_image_id))
         db.commit()
                 
     return jsonify({'message': 'Images labeled successfully'}), 200
@@ -69,18 +82,16 @@ def label_reference_image(reference_url):
     for user_image in user_images:
         user_image_id = user_image['id']
         user_image_url = user_image['s3_url']
-        matching_labels = user_image['label'].split(',')
+        matching_labels = user_image['label'].split(',') if user_image['label'] else []
         
         for reference_image in reference_images:
-            reference_image_id = reference_image['id']
             reference_image_label = reference_image['label']
             reference_image_url = reference_image['s3_url']
             
             matches = compare_faces(reference_image_url, user_image_url)
             if matches and reference_image_label not in matching_labels:
                 matching_labels.append(reference_image_label)
-        cursor.execute('UPDATE user_image SET label = ?, reference_id = ? WHERE id = ?', 
-                        (",".join(matching_labels), reference_image_id, user_image_id))
+        cursor.execute('UPDATE user_image SET label = ? WHERE id = ?', (",".join(matching_labels), user_image_id))
         db.commit()
                 
     return jsonify({'message': 'Images labeled successfully'}), 200

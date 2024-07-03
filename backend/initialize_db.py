@@ -17,8 +17,7 @@ def initialize_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         s3_url TEXT NOT NULL,
         label TEXT,
-        reference_id INTEGER,
-        FOREIGN KEY (reference_id) REFERENCES reference_image (id)
+        object_label TEXT
     )
     ''')
 

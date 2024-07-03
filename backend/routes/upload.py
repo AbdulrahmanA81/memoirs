@@ -3,17 +3,19 @@ from database import get_db
 from utils.s3_utils import upload_file_to_s3
 from utils.rekognition_utils import compare_faces
 from config import Config
+from flask_cors import cross_origin
+import traceback
 
 bp = Blueprint('upload', __name__)
 
 @bp.route('/upload_user_image', methods=['POST'])
+@cross_origin()
 def upload_user_image():
     try: 
-        files = request.files.getlist('file')
-        
+        files = request.files.getlist('files')
+        print(files)
         for file in files:
             s3_url = upload_file_to_s3(file, file.filename, Config.S3_BUCKET)
-            print("here")
             print(s3_url)
             if s3_url:
                 db = get_db()
@@ -22,10 +24,13 @@ def upload_user_image():
                 db.commit()
         label_images()
         return jsonify({'message': 'User image(s) uploaded successfully'}), 201
-    except:
+    except Exception as e:
+        print(e)
+        traceback.format_exc()
         return jsonify({'message': 'Failed to upload image'}), 400
  
 @bp.route('/label_images', methods=['POST'])
+@cross_origin()
 def label_images():
     db = get_db()
     cursor = db.cursor()

@@ -1,8 +1,10 @@
 from flask import Flask
+from flask_cors import CORS
 from database import get_db, close_db
 
 app = Flask(__name__)
 app.config['DATABASE'] = 'database.db'  # SQLite database file
+CORS(app)
 
 @app.teardown_appcontext
 def close_db_context(e=None):

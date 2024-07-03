@@ -8,6 +8,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import SendIcon from '@mui/icons-material/Send'; // Correct import for Send icon from MUI icons
+import { backend_url } from '@/config';
 
 export default function AiChatPage(): React.JSX.Element {
   const [messages, setMessages] = useState([
@@ -25,7 +26,7 @@ export default function AiChatPage(): React.JSX.Element {
       setInputText('');
 
       try {
-        const response = await fetch('http://localhost:8000/ai_query', {
+        const response = await fetch(backend_url+'/ai_query', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

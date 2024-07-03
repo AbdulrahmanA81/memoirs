@@ -25,6 +25,7 @@ def ai_query():
         - id: INTEGER
         - s3_url: TEXT
         - label: TEXT (comma-separated labels, e.g., 'Kate,William')
+        - object_label: TEXT (comma-separated objects or scenery, e.g., 'Beach,Sea,Person')
         """
 
         # Use GPT-3.5 Turbo to transform the user query to an SQL query
@@ -38,7 +39,8 @@ def ai_query():
             ]
         )
         sql_query = response.choices[0].message.content.strip()
-
+        print("Executing SQL query:", sql_query)
+        
         # Execute the SQL query on the user_image table
         db = get_db()
         cursor = db.cursor()
@@ -46,13 +48,13 @@ def ai_query():
         rows = cursor.fetchall()
 
         # Prepare the image data
-        images = [{'id': row['id'], 's3_url': row['s3_url'], 'label': row['label']} for row in rows]
+        images = [{'id': row['id'], 's3_url': row['s3_url'], 'label': row['label'], 'object_label': row['object_label']} for row in rows]
         num_images = len(images)
 
         # Use GPT-3.5 Turbo to generate a friendly message based on the results
         result_prompt = f"Generate a human-friendly response based on the following: The user asked: '{user_query}'. Number of images found: {num_images}."
         if num_images > 0:
-            result_prompt += f" The images contain the labels: {', '.join(set([label for image in images for label in image['label'].split(',')]))}."
+            result_prompt += f" The images contain the labels: {', '.join(set([label for image in images for label in image['label'].split(',')]))} and objects: {', '.join(set([obj for image in images for obj in image['object_label'].split(',')]))}."
         else:
             result_prompt += " No images were found."
 

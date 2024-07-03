@@ -15,7 +15,7 @@ def compare_faces(source_image, target_image):
 
 def detect_labels(image):
     response = rekognition.detect_labels(
-        Image={'S3Object': {'Bucket': Config.S3_BUCKET, 'Name': image}},
+        Image={'S3Object': {'Bucket': Config.S3_BUCKET, 'Name': image.replace("https://memoirs-test.s3.amazonaws.com/", "")}},
         MaxLabels=10,
         MinConfidence=75
     )

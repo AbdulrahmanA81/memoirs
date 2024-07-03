@@ -21,6 +21,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
 import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
+import { backend_url } from '@/config';
 
 const initialReferences = [];
 
@@ -77,7 +78,7 @@ export default function Page(): React.JSX.Element {
   };
 
   const getReferenceImages = async () => {
-    const response = await fetch('http://localhost:8000/get_reference_images', {
+    const response = await fetch(backend_url+'/get_reference_images', {
       method: 'GET',
     });
     const data = await response.json();
@@ -96,7 +97,7 @@ export default function Page(): React.JSX.Element {
     const formData = new FormData();
     formData.append('file', selectedFile);
     formData.append('label', fileName);
-    const response = await fetch('http://localhost:8000/upload_reference', {
+    const response = await fetch(backend_url+'/upload_reference', {
       method: 'POST',
       body: formData,
     });
@@ -107,7 +108,7 @@ export default function Page(): React.JSX.Element {
 
   const confirmDelete = async () => {
     setLoading(true);
-    const response = await fetch('http://localhost:8000/delete_reference_image', {
+    const response = await fetch(backend_url+'/delete_reference_image', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

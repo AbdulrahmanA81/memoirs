@@ -20,6 +20,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
 import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
 import { textAlign } from '@mui/system';
+import { backend_url } from '@/config';
 
 const initialAlbums = [];
 
@@ -73,7 +74,7 @@ export default function AlbumUploadPage(): React.JSX.Element {
   };
 
   const getAlbumImages = async () => {
-    const response = await fetch('http://localhost:8000/get_album_images');
+    const response = await fetch(backend_url + '/get_album_images');
     const data = await response.json();
     const albums = data.map((album, index) => ({
       id: index + 1,
@@ -88,7 +89,7 @@ export default function AlbumUploadPage(): React.JSX.Element {
     selectedFiles.forEach(file => {
       formData.append('files', file);
     });
-    const response = await fetch('http://localhost:8000/upload_user_image', {
+    const response = await fetch(backend_url + '/upload_user_image', {
       method: 'POST',
       body: formData,
     });
@@ -99,7 +100,7 @@ export default function AlbumUploadPage(): React.JSX.Element {
 
   const confirmDelete = async () => {
     setLoading(true);
-    const response = await fetch('http://localhost:8000/delete_album_image', {
+    const response = await fetch(backend_url + '/delete_album_image', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

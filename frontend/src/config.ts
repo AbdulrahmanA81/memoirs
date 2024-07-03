@@ -10,3 +10,6 @@ export const config: Config = {
   site: { name: 'Devias Kit', description: '', themeColor: '#090a0b', url: getSiteURL() },
   logLevel: (process.env.NEXT_PUBLIC_LOG_LEVEL as keyof typeof LogLevel) ?? LogLevel.ALL,
 };
+
+//Get the backend url from env variable
+export const backend_url = process.env.BACKEND_URL;

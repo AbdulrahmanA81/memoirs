@@ -29,12 +29,12 @@ def ai_query():
         """
 
         # Use GPT-3.5 Turbo to transform the user query to an SQL query
-        prompt = f"Transform the following natural language query into an SQL query for the described schema: '{user_query}'\nSchema:\n{schema_info}"
+        prompt = f"Transform the following natural language query into an SQL query for the described schema: '{user_query}'. Ensure the query is case-insensitive.\nSchema:\n{schema_info}"
 
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are an assistant that transforms natural language queries into SQL queries for SQLite3. No newlines. Resulting rows must have all columns in table. Give only the SQL query as output, nothing else."},
+                {"role": "system", "content": "You are an assistant that transforms natural language queries into SQL queries for SQLite3. Ensure the resulting query is case-insensitive. No newlines. Resulting rows must have all columns in table. Give only the SQL query as output, nothing else."},
                 {"role": "user", "content": prompt}
             ]
         )

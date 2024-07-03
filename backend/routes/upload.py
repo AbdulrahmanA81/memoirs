@@ -10,7 +10,7 @@ bp = Blueprint('upload', __name__)
 def upload_user_image():
     try: 
         files = request.files.getlist('file')
-        print(files, "\n\n\n")
+        
         for file in files:
             s3_url = upload_file_to_s3(file, file.filename, Config.S3_BUCKET)
             print("here")
@@ -20,6 +20,7 @@ def upload_user_image():
                 cursor = db.cursor()
                 cursor.execute('INSERT INTO user_image (s3_url) VALUES (?)', (s3_url,))
                 db.commit()
+        label_images()
         return jsonify({'message': 'User image(s) uploaded successfully'}), 201
     except:
         return jsonify({'message': 'Failed to upload image'}), 400
@@ -30,12 +31,13 @@ def label_images():
     cursor = db.cursor()
     cursor.execute('SELECT * FROM reference_image')
     reference_images = cursor.fetchall()
-    cursor.execute('SELECT * FROM user_image WHERE label IS NULL')
+    cursor.execute('SELECT * FROM user_image')
     user_images = cursor.fetchall()
     
     for user_image in user_images:
         user_image_id = user_image['id']
         user_image_url = user_image['s3_url']
+        matching_labels = []
         
         for reference_image in reference_images:
             reference_image_id = reference_image['id']
@@ -44,8 +46,9 @@ def label_images():
             
             matches = compare_faces(reference_image_url, user_image_url)
             if matches:
-                cursor.execute('UPDATE user_image SET label = ?, reference_id = ? WHERE id = ?', 
-                               (reference_image_label, reference_image_id, user_image_id))
-                db.commit()
-                break
+                matching_labels.append(reference_image_label)
+            cursor.execute('UPDATE user_image SET label = ?, reference_id = ? WHERE id = ?', 
+                            (",".join(matching_labels), reference_image_id, user_image_id))
+            db.commit()
+                
     return jsonify({'message': 'Images labeled successfully'}), 200

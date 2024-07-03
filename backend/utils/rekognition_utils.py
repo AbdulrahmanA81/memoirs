@@ -8,7 +8,7 @@ rekognition = boto3.client('rekognition',
 
 def compare_faces(source_image, target_image):
     response = rekognition.compare_faces(
-        SourceImage={'S3Object': {'Bucket': Config.S3_BUCKET, 'Name': source_image}},
-        TargetImage={'S3Object': {'Bucket': Config.S3_BUCKET, 'Name': target_image}}
+        SourceImage={'S3Object': {'Bucket': Config.S3_BUCKET, 'Name': source_image.replace("https://memoirs-test.s3.amazonaws.com/", "")}},
+        TargetImage={'S3Object': {'Bucket': Config.S3_BUCKET, 'Name': target_image.replace("https://memoirs-test.s3.amazonaws.com/", "")}}
     )
     return response['FaceMatches']

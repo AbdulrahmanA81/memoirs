@@ -7,8 +7,10 @@ bp = Blueprint('reference', __name__)
 
 @bp.route('/upload_reference', methods=['POST'])
 def upload_reference():
+    
     file = request.files['file']
     label = request.form['label']
+    
     s3_url = upload_file_to_s3(file, file.filename, Config.S3_BUCKET)
     
     if s3_url:

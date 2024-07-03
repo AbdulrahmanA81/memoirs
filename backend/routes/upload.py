@@ -8,17 +8,22 @@ bp = Blueprint('upload', __name__)
 
 @bp.route('/upload_user_image', methods=['POST'])
 def upload_user_image():
-    file = request.files['file']
-    s3_url = upload_file_to_s3(file, file.filename, Config.S3_BUCKET)
-    
-    if s3_url:
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('INSERT INTO user_image (s3_url) VALUES (?)', (s3_url,))
-        db.commit()
-        return jsonify({'message': 'User image uploaded successfully'}), 201
-    return jsonify({'message': 'Failed to upload image'}), 400
-
+    try: 
+        files = request.files.getlist('file')
+        print(files, "\n\n\n")
+        for file in files:
+            s3_url = upload_file_to_s3(file, file.filename, Config.S3_BUCKET)
+            print("here")
+            print(s3_url)
+            if s3_url:
+                db = get_db()
+                cursor = db.cursor()
+                cursor.execute('INSERT INTO user_image (s3_url) VALUES (?)', (s3_url,))
+                db.commit()
+        return jsonify({'message': 'User image(s) uploaded successfully'}), 201
+    except:
+        return jsonify({'message': 'Failed to upload image'}), 400
+ 
 @bp.route('/label_images', methods=['POST'])
 def label_images():
     db = get_db()

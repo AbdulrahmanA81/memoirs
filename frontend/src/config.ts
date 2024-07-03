@@ -12,4 +12,4 @@ export const config: Config = {
 };
 
 //Get the backend url from env variable
-export const backend_url = process.env.BACKEND_URL ? process.env.BACKEND_URL : 'http://localhost:8000';
+export const backend_url = 'https://baldski.pythonanywhere.com'; // process.env.BACKEND_URL ? process.env.BACKEND_URL : 'http://localhost:8000';

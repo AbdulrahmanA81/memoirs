@@ -81,7 +81,7 @@ export default function AiChatPage(): React.JSX.Element {
       </Box>
       <Box sx={{ flexGrow: 1, overflowY: 'auto', padding: 2 }}>
         {messages.map((message, index) => (
-          <Box key={index} sx={{ marginBottom: 2 }}>
+          <Box key={index} sx={{ marginBottom: 2, width: '75%', float: message.type==='user' ? 'right' : 'left' }}>
             <Card sx={{ backgroundColor: message.type === 'user' ? 'primary.main' : 'grey.200', color: message.type === 'user' ? 'white' : 'black'}}>
               <CardContent style={{padding: '15px'}}>
                 <Typography variant="body1">{message.content}</Typography>

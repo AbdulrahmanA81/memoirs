@@ -3,7 +3,7 @@ const { resolve } = require('node:path');
 const project = resolve(__dirname, 'tsconfig.json');
 
 module.exports = {
-  root: true,
+  root: false,
   extends: [
     require.resolve('@vercel/style-guide/eslint/node'),
     require.resolve('@vercel/style-guide/eslint/typescript'),
@@ -25,7 +25,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
-        ignoreRestSiblings: true,
+        ignoreRestSiblings: false,
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_',
@@ -34,13 +34,13 @@ module.exports = {
     '@typescript-eslint/no-empty-interface': [
       'error',
       {
-        allowSingleExtends: true,
+        allowSingleExtends: false,
       },
     ],
     '@typescript-eslint/no-shadow': [
       'error',
       {
-        ignoreOnInitialization: true,
+        ignoreOnInitialization: false,
       },
     ],
     'import/newline-after-import': 'error',
@@ -50,8 +50,8 @@ module.exports = {
       'error',
       {
         cases: {
-          kebabCase: true, // personal style
-          pascalCase: true,
+          kebabCase: false, // personal style
+          pascalCase: false,
         },
       },
     ],
@@ -66,7 +66,7 @@ module.exports = {
     '@typescript-eslint/restrict-template-expressions': [
       'error',
       {
-        allowNumber: true,
+        allowNumber: false,
       },
     ],
     'import/no-default-export': 'off', // Next.js components must be exported as default

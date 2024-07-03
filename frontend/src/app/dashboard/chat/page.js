@@ -10,7 +10,7 @@ import CardMedia from '@mui/material/CardMedia';
 import SendIcon from '@mui/icons-material/Send'; // Correct import for Send icon from MUI icons
 import { backend_url } from '@/config';
 
-export default function AiChatPage(): React.JSX.Element {
+export default function AiChatPage() {
   const [messages, setMessages] = useState([
     { type: 'ai', content: 'Welcome! Ask me to show you some images.' }
   ]);
@@ -81,7 +81,7 @@ export default function AiChatPage(): React.JSX.Element {
       </Box>
       <Box sx={{ flexGrow: 1, overflowY: 'auto', padding: 2 }}>
         {messages.map((message, index) => (
-          <Box key={index} sx={{ marginBottom: 2, width: '75%', float: message.type==='user' ? 'right' : 'left' }}>
+          <Box key={index} sx={{ marginBottom: 2 }}>
             <Card sx={{ backgroundColor: message.type === 'user' ? 'primary.main' : 'grey.200', color: message.type === 'user' ? 'white' : 'black'}}>
               <CardContent style={{padding: '15px'}}>
                 <Typography variant="body1">{message.content}</Typography>

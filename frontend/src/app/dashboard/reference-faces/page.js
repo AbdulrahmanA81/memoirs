@@ -25,7 +25,7 @@ import { backend_url } from '@/config';
 
 const initialReferences = [];
 
-export default function Page(): React.JSX.Element {
+export default function Page() {
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileName, setFileName] = useState('');  // the label

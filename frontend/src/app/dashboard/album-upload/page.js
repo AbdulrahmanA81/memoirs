@@ -22,9 +22,9 @@ import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
 import { textAlign } from '@mui/system';
 import { backend_url } from '@/config';
 
-const initialAlbums: string[] = [];
+const initialAlbums = [];
 
-export default function AlbumUploadPage(): React.JSX.Element {
+export default function AlbumUploadPage() {
   const [open, setOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [albums, setAlbums] = useState(initialAlbums);

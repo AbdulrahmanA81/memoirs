@@ -1,3 +1,9 @@
+import { redirect } from 'next/navigation';
+
+export default function Page(): never {
+  redirect('/dashboard/reference-faces');
+}
+/*
 import * as React from 'react';
 import type { Metadata } from 'next';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -131,3 +137,4 @@ export default function Page(): React.JSX.Element {
     </Grid>
   );
 }
+*/

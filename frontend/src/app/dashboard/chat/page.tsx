@@ -9,59 +9,51 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import SendIcon from '@mui/icons-material/Send'; // Correct import for Send icon from MUI icons
 
-const placeholderMessages = [
-  {
-    type: 'user',
-    content: 'Hello AI, show me some images of cats.',
-  },
-  {
-    type: 'ai',
-    content: 'Sure, here are some images of cats:',
-    images: [
-      'https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb',
-      'https://media.istockphoto.com/id/91626487/photo/funny-kitten.jpg?s=612x612&w=0&k=20&c=9Ftu_rNQpfWhYkmQzvC2x_-yGKhoJmzUBemM4AlaWYw=',
-      'https://media.istockphoto.com/id/1447238754/photo/kitten-on-white-background.jpg?s=612x612&w=0&k=20&c=KOHJKO27dql9wxmYG-MMYPcln6e2oXqk8eUmh-XgSoY=',
-    ],
-  },
-  {
-    type: 'user',
-    content: 'Thank you!',
-  },
-  {
-    type: 'ai',
-    content: 'You\'re welcome! Is there anything else you need?',
-    images: [],
-  },
-];
-
 export default function AiChatPage(): React.JSX.Element {
-  const [messages, setMessages] = useState(placeholderMessages);
+  const [messages, setMessages] = useState([
+    { type: 'ai', content: 'Welcome! Ask me to show you some images.' }
+  ]);
   const [inputText, setInputText] = useState('');
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [overlayImage, setOverlayImage] = useState(null);
   const messagesEndRef = useRef(null);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (inputText.trim()) {
       const newMessage = { type: 'user', content: inputText, images: [] };
-      setMessages([...messages, newMessage]);
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
       setInputText('');
-      // Simulate AI response
-      setTimeout(() => {
-        const aiResponse = {
-          type: 'ai',
-          content: 'Here are some more images of cats:',
-          images: [
-            'https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb',
-            'https://media.istockphoto.com/id/91626487/photo/funny-kitten.jpg?s=612x612&w=0&k=20&c=9Ftu_rNQpfWhYkmQzvC2x_-yGKhoJmzUBemM4AlaWYw=',
-            'https://media.istockphoto.com/id/1447238754/photo/kitten-on-white-background.jpg?s=612x612&w=0&k=20&c=KOHJKO27dql9wxmYG-MMYPcln6e2oXqk8eUmh-XgSoY=',
-            'https://images.unsplash.com/photo-1595433707802-6b2626ef1c91?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb',
-            'https://media.istockphoto.com/id/91626487/photo/funny-kitten.jpg?s=612x612&w=0&k=20&c=9Ftu_rNQpfWhYkmQzvC2x_-yGKhoJmzUBemM4AlaWYw=',
-            'https://media.istockphoto.com/id/1447238754/photo/kitten-on-white-background.jpg?s=612x612&w=0&k=20&c=KOHJKO27dql9wxmYG-MMYPcln6e2oXqk8eUmh-XgSoY='
-          ],
-        };
-        setMessages((prevMessages) => [...prevMessages, aiResponse]);
-      }, 1000);
+
+      try {
+        const response = await fetch('http://localhost:8000/ai_query', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query: inputText }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          const aiResponse = {
+            type: 'ai',
+            content: data.message,
+            images: data.images.map((img) => img.s3_url),
+          };
+          setMessages((prevMessages) => [...prevMessages, aiResponse]);
+        } else {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { type: 'ai', content: 'Sorry, something went wrong. Please try again.' }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { type: 'ai', content: 'Sorry, something went wrong. Please try again.' }
+        ]);
+      }
     }
   };
 
@@ -89,8 +81,8 @@ export default function AiChatPage(): React.JSX.Element {
       <Box sx={{ flexGrow: 1, overflowY: 'auto', padding: 2 }}>
         {messages.map((message, index) => (
           <Box key={index} sx={{ marginBottom: 2 }}>
-            <Card sx={{ backgroundColor: message.type === 'user' ? 'primary.main' : 'grey.200', color: message.type === 'user' ? 'white' : 'black' }}>
-              <CardContent>
+            <Card sx={{ backgroundColor: message.type === 'user' ? 'primary.main' : 'grey.200', color: message.type === 'user' ? 'white' : 'black'}}>
+              <CardContent style={{padding: '15px'}}>
                 <Typography variant="body1">{message.content}</Typography>
                 {Array.isArray(message.images) && message.images.length > 0 && (
                   <Grid container spacing={1} sx={{ marginTop: 1 }}>

@@ -3,10 +3,10 @@ export const paths = {
   auth: { signIn: '/auth/sign-in', signUp: '/auth/sign-up', resetPassword: '/auth/reset-password' },
   dashboard: {
     overview: '/dashboard',
-    account: '/dashboard/account',
-    customers: '/dashboard/customers',
+    account: '/dashboard/album-upload',
+    customers: '/dashboard/reference-faces',
     integrations: '/dashboard/integrations',
-    settings: '/dashboard/settings',
+    settings: '/dashboard/chat',
   },
   errors: { notFound: '/errors/not-found' },
 } as const;

@@ -2,3 +2,4 @@ Flask
 boto3
 Flask-Cors==4.0.1
 openai
+python-dotenv

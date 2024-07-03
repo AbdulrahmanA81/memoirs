@@ -1,6 +1,9 @@
 import os
+from dotenv import load_dotenv
+
 
 class Config:
+    load_dotenv()
     SECRET_KEY = os.getenv('SECRET_KEY', 'your_secret_key')
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')

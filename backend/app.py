@@ -11,10 +11,12 @@ def close_db_context(e=None):
     close_db(e)
 
 # Register blueprints
-from routes import reference, upload, label
+from routes import reference, upload, label, ai
 app.register_blueprint(reference.bp)
 app.register_blueprint(upload.bp)
 app.register_blueprint(label.bp)
+app.register_blueprint(ai.bp)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

@@ -30,6 +30,8 @@ export default function AlbumUploadPage(): React.JSX.Element {
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [overlayImage, setOverlayImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState(null);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -46,8 +48,6 @@ export default function AlbumUploadPage(): React.JSX.Element {
 
   const handleAdd = () => {
     setLoading(true);
-    // setTimeout(() => {
-    // add to frontend
     const newAlbums = selectedFiles.map((file, index) => ({
       id: albums.length + index + 1,
       src: URL.createObjectURL(file),
@@ -55,11 +55,11 @@ export default function AlbumUploadPage(): React.JSX.Element {
     setAlbums([...albums, ...newAlbums]);
     uploadImages();  // send to backend
     handleClose();
-    // }, 5000);
   };
 
-  const handleDelete = (id) => {
-    setAlbums(albums.filter((album) => album.id !== id));
+  const handleDelete = (album) => {
+    setImageToDelete(album);
+    setDeleteDialogOpen(true);
   };
 
   const handleImageClick = (src) => {
@@ -84,10 +84,8 @@ export default function AlbumUploadPage(): React.JSX.Element {
   }
 
   const uploadImages = async () => {
-    // NOTE: does not work rn
-    // send to backend
     const formData = new FormData();
-    selectedFiles.forEach(file => {  // individually append each file
+    selectedFiles.forEach(file => {
       formData.append('files', file);
     });
     const response = await fetch('http://localhost:8000/upload_user_image', {
@@ -96,9 +94,28 @@ export default function AlbumUploadPage(): React.JSX.Element {
     });
     const data = await response.json();
     setLoading(false);
-    console.log(data);
     return data;
   }
+
+  const confirmDelete = async () => {
+    setLoading(true);
+    const response = await fetch('http://localhost:8000/delete_album_image', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ s3_url: imageToDelete.src }),
+    });
+    const data = await response.json();
+    setLoading(false);
+    if (response.ok) {
+      setAlbums(albums.filter((album) => album.id !== imageToDelete.id));
+    } else {
+      console.error('Failed to delete image:', data.message);
+    }
+    setDeleteDialogOpen(false);
+    setImageToDelete(null);
+  };
 
   React.useEffect(() => {
     getAlbumImages();
@@ -153,13 +170,12 @@ export default function AlbumUploadPage(): React.JSX.Element {
                   onClick={() => handleImageClick(album.src)}
                   style={{ cursor: 'pointer' }}
                 />
-                <Typography variant="h6" style={{ textAlign: 'center' }}>{album.label}</Typography>
                 <CardActions style={{ justifyContent: 'center' }}>
                   <Button
                     variant="outlined"
                     color="warning"
                     startIcon={<DeleteIcon />}
-                    onClick={() => handleDelete(album.id)}
+                    onClick={() => handleDelete(album)}
                   >
                     Delete Photo
                   </Button>
@@ -207,6 +223,31 @@ export default function AlbumUploadPage(): React.JSX.Element {
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleAdd} variant="contained">
             {loading ? <CircularProgress size={24} color="inherit" /> : 'Add Photos'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this photo? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={confirmDelete}
+            variant="contained"
+            color="warning"
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}
+          >
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

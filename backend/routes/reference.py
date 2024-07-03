@@ -3,6 +3,7 @@ from database import get_db
 from utils.s3_utils import upload_file_to_s3
 from config import Config
 from flask_cors import cross_origin
+from .upload import label_reference_image
 
 bp = Blueprint('reference', __name__)
 
@@ -20,5 +21,7 @@ def upload_reference():
         cursor = db.cursor()
         cursor.execute('INSERT INTO reference_image (label, s3_url) VALUES (?, ?)', (label, s3_url))
         db.commit()
+        label_reference_image(s3_url)
+        
         return jsonify({'message': 'Reference image uploaded successfully'}), 201
     return jsonify({'message': 'Failed to upload image'}), 400

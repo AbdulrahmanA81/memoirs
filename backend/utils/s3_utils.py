@@ -57,3 +57,11 @@ def upload_files_to_s3_concurrently(files_with_names, bucket_name):
             urls.append(future.result())
     
     return urls
+
+def delete_file_from_s3(filename, bucket_name):
+    try:
+        s3.delete_object(Bucket=bucket_name, Key=filename)
+        return True
+    except Exception as e:
+        print(f"Something Happened while deleting {filename}: ", e)
+        return False

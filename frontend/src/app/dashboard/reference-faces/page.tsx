@@ -18,6 +18,7 @@ import CardActions from '@mui/material/CardActions';
 import CardMedia from '@mui/material/CardMedia';
 import Box from '@mui/material/Box';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CircularProgress from '@mui/material/CircularProgress';
 import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
 import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
 
@@ -30,6 +31,9 @@ export default function Page(): React.JSX.Element {
   const [references, setReferences] = useState(initialReferences);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [overlayImage, setOverlayImage] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [referenceToDelete, setReferenceToDelete] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -57,8 +61,9 @@ export default function Page(): React.JSX.Element {
     handleClose();
   };
 
-  const handleDelete = (id) => {
-    setReferences(references.filter((reference) => reference.id !== id));
+  const handleDelete = (reference) => {
+    setReferenceToDelete(reference);
+    setDeleteDialogOpen(true);
   };
 
   const handleImageClick = (src) => {
@@ -98,7 +103,27 @@ export default function Page(): React.JSX.Element {
     const data = await response.json();
     console.log(data);
     return data;
-  }
+  };
+
+  const confirmDelete = async () => {
+    setLoading(true);
+    const response = await fetch('http://localhost:8000/delete_reference_image', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ s3_url: referenceToDelete.src }),
+    });
+    const data = await response.json();
+    setLoading(false);
+    if (response.ok) {
+      setReferences(references.filter((reference) => reference.id !== referenceToDelete.id));
+    } else {
+      console.error('Failed to delete reference:', data.message);
+    }
+    setDeleteDialogOpen(false);
+    setReferenceToDelete(null);
+  };
 
   React.useEffect(() => {
     getReferenceImages();  // Fetch reference images when the page loads
@@ -146,7 +171,7 @@ export default function Page(): React.JSX.Element {
                     variant="outlined"
                     color="warning"
                     startIcon={<DeleteIcon />}
-                    onClick={() => handleDelete(reference.id)}
+                    onClick={() => handleDelete(reference)}
                   >
                     Delete
                   </Button>
@@ -201,6 +226,31 @@ export default function Page(): React.JSX.Element {
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleAdd} variant="contained">Add</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this reference face? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={confirmDelete}
+            variant="contained"
+            color="warning"
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <DeleteIcon />}
+          >
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
 
